@@ -35,8 +35,8 @@
                 console.log(json);
             }
         };
-        abstract = document.getElementById("abstract").textContent
-        claims = document.getElementById("claims").textContent
+        var abstract = document.getElementById("abstract").value
+        var claims = document.getElementById("claims").value
 
         var data = JSON.stringify({"abstract":abstract, "claims":claims});
         console.log(data);
