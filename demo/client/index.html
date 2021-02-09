@@ -6,14 +6,13 @@
 
   <title>Homework 2</title>
 
-  <link rel="stylesheet" href="css/styles.css?v=1.0">
+  <link rel="stylesheet" href="style.css">
 
 </head>
 
 <body>
 
-	<style>
-</style>
+
 
   <script>
     function sendData(){
@@ -30,7 +29,7 @@
                   results = document.getElementById("results")
                   results.innerHTML = ""
                   for(var elem of json.slice(0, 10)){
-                    results.innerHTML += elem+"\n";
+                    results.innerHTML += elem+"  ";
                   }
                 console.log(json);
             }
@@ -45,8 +44,8 @@
 
         
   </script>
-    <textarea id="abstract" rows="10" cols="30">Put your abstract here</textarea>
-    <textarea id="claims" rows="10" cols="30">Put your claims here</textarea>
+    <textarea placeholder="Put your abstract here" class="textareas" id="abstract" rows="10" cols="30"></textarea>
+    <textarea placeholder="Put your claims here" class="textareas" id="claims" rows="10" cols="30"></textarea>
     <button style="width: 100px; height:20px" id="send" onclick="sendData()">Get results</button>
     <div>Results:</div>
     <div id="results">
