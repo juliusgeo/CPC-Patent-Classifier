@@ -1,5 +1,7 @@
-from flask import Flask, request, jsonify
-app = Flask(__name__)
+#from flask import Flask, request, jsonify
+#app = Flask(__name__)
+
+
 #############
 #SETUP MODEL#
 #############
@@ -110,41 +112,29 @@ model.load_weights(directory_prefix+"checkpoints/LSTMWithoutAttention-V1NewDatas
 
 model.summary()
 opt = tf.optimizers.Adam(1e-5)
-model.compile(loss=['binary_crossentropy'],
-              optimizer=opt,
-              metrics=['accuracy'], experimental_run_tf_function=False)
+model.compile(loss=['binary_crossentropy'],optimizer=opt,metrics=['accuracy'], experimental_run_tf_function=False)
 
-
-# Create a callback that saves the model's weights
-cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=directory_prefix+"checkpoints/LSTMWithoutAttention-V1NewDataset.h5",
-                                                 save_weights_only=False,
-                                                 verbose=1)
-
-class CustomCallback(tf.keras.callbacks.Callback):
-    def on_epoch_end(self, epoch, logs=None):
-        generate_prc()
 prc_callback = CustomCallback()
-
+label_len = len(label_dict_keys)
+left = [label_dict[i] for i in label_dict_keys]
+left_vectors = np.array(list(label_dict_keys))
+description_shape = tf.TensorShape([num_words_abstract, embedding_dim])
+claims_shape = tf.TensorShape([num_words_claims, embedding_dim])
+label_shape = tf.TensorShape([num_words_label_description, embedding_dim])
 
 @app.route('/getprediction', methods=["POST"])
 def hello_world():
-	print(request.json())
-	label_len = len(label_dict_keys)
-    #print(label_len)
-    left = [label_dict[i] for i in label_dict_keys]
-    predictions = []
-    left_vectors = np.array(list(label_dict_keys))
-
-
+    print(request.json)
+    abstract = "BLAH BLAH BLAH"
+    claims = "BLAH BLAH BLAH"
     lstm_input_patent = get_sentence_vector(abstract.lower(), num_words_abstract)
     lstm_input_claims = get_sentence_vector(claims.lower(), num_words_claims)
-    for i in left:
-        yield ({'input_abstract':lstm_input_patent, 'input_claims':lstm_input_claims, 'input_label':i})
-
-
-
-    for prediction, label_vectors in zip(predictions, label_vectors_vector):
-        indices = np.flip(np.argsort(prediction, axis=0))
-        #print(indices)
-        e = [1 if i in label_vectors else 0 for i in left_vectors[indices]]
-    return 'Hello, World!'
+    num_tests = 1
+    def cur_gen():
+        for i in left:
+            yield ({'input_abstract':lstm_input_patent, 'input_claims':lstm_input_claims, 'input_label':i})
+    dataset = tf.data.Dataset.from_generator(cur_gen, ({'input_abstract':tf.float64, 'input_claims':tf.float64, 'input_label':tf.float64}), ({'input_abstract':description_shape,'input_claims':claims_shape, 'input_label':label_shape}))
+    dataset = dataset.batch(label_len).prefetch(50)
+    prediction = model.predict(dataset, steps=num_tests, verbose=1).reshape(num_tests, label_len)
+    indices = np.flip(np.argsort(prediction, axis=0))
+    e = [i for i in left_vectors[indices]]
