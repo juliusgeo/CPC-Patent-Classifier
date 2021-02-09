@@ -1,0 +1,58 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Homework 2</title>
+
+  <link rel="stylesheet" href="css/styles.css?v=1.0">
+
+</head>
+
+<body>
+
+	<style>
+</style>
+
+  <script>
+    function sendData(){
+      var xhr = new XMLHttpRequest();
+        var url = "http://lvh.me:5000/getprediction";
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+        xhr.setRequestHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, HEAD, OPTIONS");
+        xhr.onreadystatechange = function () {
+            console.log(this.responseText)
+            if (this.readyState == 4 && this.status == 200) {
+                  var json = JSON.parse(xhr.responseText);
+                  results = document.getElementById("results")
+                  results.innerHTML = ""
+                  for(var elem of json.slice(0, 10)){
+                    results.innerHTML += elem+"\n";
+                  }
+                console.log(json);
+            }
+        };
+        abstract = document.getElementById("abstract").textContent
+        claims = document.getElementById("claims").textContent
+
+        var data = JSON.stringify({"abstract":abstract, "claims":claims});
+        console.log(data);
+        xhr.send(data);
+    }
+
+        
+  </script>
+    <textarea id="abstract" rows="10" cols="30">Put your abstract here</textarea>
+    <textarea id="claims" rows="10" cols="30">Put your claims here</textarea>
+    <button style="width: 100px; height:20px" id="send" onclick="sendData()">Get results</button>
+    <div>Results:</div>
+    <div id="results">
+      
+    </div>
+
+
+</body>
+</html>
