@@ -1,6 +1,7 @@
-#from flask import Flask, request, jsonify
-#app = Flask(__name__)
-
+from flask import Flask, request, jsonify
+from flask_cors import CORS, cross_origin
+app = Flask(__name__)
+CORS(app)
 
 #############
 #SETUP MODEL#
@@ -114,7 +115,6 @@ model.summary()
 opt = tf.optimizers.Adam(1e-5)
 model.compile(loss=['binary_crossentropy'],optimizer=opt,metrics=['accuracy'], experimental_run_tf_function=False)
 
-prc_callback = CustomCallback()
 label_len = len(label_dict_keys)
 left = [label_dict[i] for i in label_dict_keys]
 left_vectors = np.array(list(label_dict_keys))
@@ -123,10 +123,11 @@ claims_shape = tf.TensorShape([num_words_claims, embedding_dim])
 label_shape = tf.TensorShape([num_words_label_description, embedding_dim])
 
 @app.route('/getprediction', methods=["POST"])
+@cross_origin()
 def hello_world():
     print(request.json)
-    abstract = "BLAH BLAH BLAH"
-    claims = "BLAH BLAH BLAH"
+    abstract = request.json["abstract"]
+    claims = request.json["claims"]
     lstm_input_patent = get_sentence_vector(abstract.lower(), num_words_abstract)
     lstm_input_claims = get_sentence_vector(claims.lower(), num_words_claims)
     num_tests = 1
@@ -135,6 +136,11 @@ def hello_world():
             yield ({'input_abstract':lstm_input_patent, 'input_claims':lstm_input_claims, 'input_label':i})
     dataset = tf.data.Dataset.from_generator(cur_gen, ({'input_abstract':tf.float64, 'input_claims':tf.float64, 'input_label':tf.float64}), ({'input_abstract':description_shape,'input_claims':claims_shape, 'input_label':label_shape}))
     dataset = dataset.batch(label_len).prefetch(50)
-    prediction = model.predict(dataset, steps=num_tests, verbose=1).reshape(num_tests, label_len)
+    prediction = model.predict(dataset, steps=num_tests, verbose=1).reshape(label_len)
     indices = np.flip(np.argsort(prediction, axis=0))
-    e = [i for i in left_vectors[indices]]
+    print(prediction.shape)
+    print(indices.shape)
+    print(indices)
+    e = left_vectors[indices]
+    print(e)
+    return jsonify(e.tolist())
