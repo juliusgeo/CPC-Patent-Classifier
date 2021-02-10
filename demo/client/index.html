@@ -1,0 +1,57 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>Demo</title>
+
+  <link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+
+
+  <script>
+    function sendData(){
+      var xhr = new XMLHttpRequest();
+        var url = "http://lvh.me:5000/getprediction";
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+        xhr.setRequestHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, HEAD, OPTIONS");
+        xhr.onreadystatechange = function () {
+            console.log(this.responseText)
+            if (this.readyState == 4 && this.status == 200) {
+                  var json = JSON.parse(xhr.responseText);
+                  results = document.getElementById("results")
+                  results.innerHTML = ""
+                  for(var elem of json.slice(0, 10)){
+                    results.innerHTML += elem+"  ";
+                  }
+                console.log(json);
+            }
+        };
+        var abstract = document.getElementById("abstract").value
+        var claims = document.getElementById("claims").value
+
+        var data = JSON.stringify({"abstract":abstract, "claims":claims});
+        console.log(data);
+        xhr.send(data);
+    }
+
+        
+  </script>
+    <textarea placeholder="Put your abstract here" class="textareas" id="abstract" rows="10" cols="30"></textarea>
+    <textarea placeholder="Put your claims here" class="textareas" id="claims" rows="10" cols="30"></textarea>
+    <button style="width: 100px; height:20px" id="send" onclick="sendData()">Get results</button>
+    <div>Results:</div>
+    <div id="results">
+      
+    </div>
+
+
+</body>
+</html>
