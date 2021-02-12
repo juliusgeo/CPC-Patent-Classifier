@@ -5,7 +5,7 @@
   <meta charset="utf-8">
 
   <title>Demo</title>
-
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BmbxuPwQa2lc/FVzBcNJ7UAyJxM6wuqIj61tLrc4wSX0szH/Ev+nYRRuWlolflfl" crossorigin="anonymous">
   <link rel="stylesheet" href="style.css">
 
 </head>
@@ -44,14 +44,23 @@
 
         
   </script>
-    <textarea placeholder="Put your abstract here" class="textareas" id="abstract" rows="10" cols="30"></textarea>
-    <textarea placeholder="Put your claims here" class="textareas" id="claims" rows="10" cols="30"></textarea>
-    <button style="width: 100px; height:20px" id="send" onclick="sendData()">Get results</button>
-    <div>Results:</div>
-    <div id="results">
-      
-    </div>
+  <div class="container">
+  <div class="row">
+    <div class="col">
+          <div>Put your abstract here:</div>
+          <textarea placeholder="Put your abstract here" class="textareas" id="abstract" rows="10" cols="29"></textarea>
 
+    </div>
+    <div class="col">
+          <div>...And your claims here:</div>
+          <textarea placeholder="Put your claims here" class="textareas" id="claims" rows="10" cols="29"></textarea>
+    </div>
+  </div>
+  <div class="row">
+<button class="btn btn-primary" id="send" onclick="sendData()">Get results</button>
+      <div id="results"></div>
+  </div>
+</div>
 
 </body>
 </html>
