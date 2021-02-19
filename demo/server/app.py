@@ -19,11 +19,11 @@ import tensorflow as tf
 import os
 import pickle
 
-num_words_abstract = 200
+num_words_abstract = 400
 num_words_claims = 500
 num_words_label_description = num_words_abstract+num_words_claims
 directory_prefix = "../../"
-label_depth = 3
+label_depth = 4
 import random
 #import gensim.downloader as api
 from nltk.corpus import stopwords
@@ -108,7 +108,7 @@ print(model)
 #saver = tf.train.Saver(max_to_keep=4, keep_checkpoint_every_n_hours=2)
 #del model
 
-model.load_weights(directory_prefix+"checkpoints/LSTMWithoutAttention-V1NewDataset.h5")
+model.load_weights(directory_prefix+"checkpoints/LSTMWithoutAttention-ThreeHeadsLabelDepth4.h5")
 
 
 model.summary()
