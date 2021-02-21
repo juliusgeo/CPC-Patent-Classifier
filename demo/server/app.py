@@ -138,20 +138,20 @@ def get_prediction():
     dataset = dataset.batch(label_len).prefetch(50)
     prediction = model.predict(dataset, steps=num_tests, verbose=1).reshape(label_len)
     indices = np.flip(np.argsort(prediction, axis=0))
-    print(prediction.shape)
-    print(indices.shape)
-    print(indices)
+    print(np.flip(np.sort(prediction, axis=0))[:3])
     e = left_vectors[indices]
-    print(e)
     return jsonify(e.tolist())
 
 @app.route('/trainup', methods=["POST"])
 @cross_origin()
 def train_up():
+
+    label, abstract, claims=request.json["label"], request.json["abstract"], request.json["claims"]
     def lstm_data_generator():
-        label, description, claims=request.json["label"], request.json["abstract"], request.json["claims"]
         label_vectors = [label]
         label_vectors = set([i for i in label_vectors if i in label_dict_keys])
+        lstm_input_patent = get_sentence_vector(abstract.lower(), num_words_abstract)
+        lstm_input_claims = get_sentence_vector(claims.lower(), num_words_claims)
         for l, k in zip((label_dict[i] for i in label_vectors), label_vectors):
             yield ({'input_abstract':lstm_input_patent, 'input_claims':lstm_input_claims, 'input_label':l}, {'output_binary':[1]})
         return
@@ -159,26 +159,35 @@ def train_up():
     claims_shape = tf.TensorShape([num_words_claims, embedding_dim])
     label_shape = tf.TensorShape([num_words_label_description, embedding_dim])
     lstm_dataset = tf.data.Dataset.from_generator(lstm_data_generator, ({'input_abstract':tf.float64, 'input_claims':tf.float64, 'input_label':tf.float64}, {'output_binary':tf.float64}), ({'input_abstract':description_shape,'input_claims':claims_shape, 'input_label':label_shape}, {'output_binary':tf.TensorShape([1])}))
-    lstm_dataset = lstm_dataset.batch(16, drop_remainder=True).prefetch(100).repeat()
-    history = model.fit(lstm_dataset, epochs=1, steps_per_epoch=1)
-    return {"model succeeded"}
+    lstm_dataset = lstm_dataset.repeat().batch(64, drop_remainder=True)
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=directory_prefix+"checkpoints/LSTMWithoutAttention-ThreeHeadsLabelDepth4.h5",
+                                                             save_weights_only=False,
+                                                                                                              verbose=1)
+    model.fit(lstm_dataset, epochs=5, steps_per_epoch=5, callbacks=[cp_callback])
+    return jsonify({"message":"model succeeded"})
 
 @app.route('/traindown', methods=["POST"])
 @cross_origin()
 def train_down():
+
+    label, abstract, claims=request.json["label"], request.json["abstract"], request.json["claims"]
     def lstm_data_generator():
-        label, description, claims=request.json["label"], request.json["abstract"], request.json["claims"]
         label_vectors = [label]
         label_vectors = set([i for i in label_vectors if i in label_dict_keys])
+        lstm_input_patent = get_sentence_vector(abstract.lower(), num_words_abstract)
+        lstm_input_claims = get_sentence_vector(claims.lower(), num_words_claims)
         for l, k in zip((label_dict[i] for i in label_vectors), label_vectors):
-            yield ({'input_abstract':lstm_input_patent, 'input_claims':lstm_input_claims, 'input_label':l}, {'output_binary':[1]})
+            yield ({'input_abstract':lstm_input_patent, 'input_claims':lstm_input_claims, 'input_label':}, {'output_binary':[0]})
         return
     description_shape = tf.TensorShape([num_words_abstract, embedding_dim])
     claims_shape = tf.TensorShape([num_words_claims, embedding_dim])
     label_shape = tf.TensorShape([num_words_label_description, embedding_dim])
     lstm_dataset = tf.data.Dataset.from_generator(lstm_data_generator, ({'input_abstract':tf.float64, 'input_claims':tf.float64, 'input_label':tf.float64}, {'output_binary':tf.float64}), ({'input_abstract':description_shape,'input_claims':claims_shape, 'input_label':label_shape}, {'output_binary':tf.TensorShape([1])}))
-    lstm_dataset = lstm_dataset.batch(16, drop_remainder=True).prefetch(100).repeat()
-    history = model.fit(lstm_dataset, epochs=1, steps_per_epoch=1)
-    return {"model succeeded"}
+    lstm_dataset = lstm_dataset.repeat().batch(64, drop_remainder=True)
+    cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=directory_prefix+"checkpoints/LSTMWithoutAttention-ThreeHeadsLabelDepth4.h5",
+                                                             save_weights_only=False,
+                                                                                                              verbose=1)
+    model.fit(lstm_dataset, epochs=1, steps_per_epoch=10, callbacks=[cp_callback])
+    return jsonify({"message":"model succeeded"})
 
 
