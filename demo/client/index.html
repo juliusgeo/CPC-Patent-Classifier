@@ -2048,7 +2048,11 @@
             console.log(this.responseText)
             if (this.readyState == 4 && this.status == 200) {
                   document.getElementById("info").textContent = "Model trained!"
+                  var json = JSON.parse(xhr.responseText);
                   console.log(json);
+                          sendData();
+
+
             }
         };
         var curId = this.id;
@@ -2057,7 +2061,6 @@
         var data = JSON.stringify({"label":curId, "abstract":abstract, "claims":claims});
         console.log(data);
         xhr.send(data);
-        sendData();
     }
     function go_down()
     {
@@ -2072,7 +2075,10 @@
             console.log(this.responseText)
             if (this.readyState == 4 && this.status == 200) {
                   document.getElementById("info").textContent = "Model trained!"
+                  var json = JSON.parse(xhr.responseText);
                   console.log(json);
+                          sendData();
+
             }
         };
         var curId = this.id;
@@ -2081,7 +2087,6 @@
         var data = JSON.stringify({"label":curId, "abstract":abstract, "claims":claims});
         console.log(data);
         xhr.send(data);
-        sendData();
 
     }
 
