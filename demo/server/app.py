@@ -149,12 +149,11 @@ def get_prediction():
 @cross_origin()
 def train_up():
     def lstm_data_generator():
-        for row in current_dataframe[indices]:
-            label, description, claims=request.json["label"], request.json["abstract"], request.json["claims"]
-            label_vectors = [label]
-            label_vectors = set([i for i in label_vectors if i in label_dict_keys])
-            for l, k in zip((label_dict[i] for i in label_vectors), label_vectors):
-                yield ({'input_abstract':lstm_input_patent, 'input_claims':lstm_input_claims, 'input_label':l}, {'output_binary':[1]})
+        label, description, claims=request.json["label"], request.json["abstract"], request.json["claims"]
+        label_vectors = [label]
+        label_vectors = set([i for i in label_vectors if i in label_dict_keys])
+        for l, k in zip((label_dict[i] for i in label_vectors), label_vectors):
+            yield ({'input_abstract':lstm_input_patent, 'input_claims':lstm_input_claims, 'input_label':l}, {'output_binary':[1]})
         return
     description_shape = tf.TensorShape([num_words_abstract, embedding_dim])
     claims_shape = tf.TensorShape([num_words_claims, embedding_dim])
@@ -168,12 +167,11 @@ def train_up():
 @cross_origin()
 def train_down():
     def lstm_data_generator():
-        for row in current_dataframe[indices]:
-            label, description, claims=request.json["label"], request.json["abstract"], request.json["claims"]
-            label_vectors = [label]
-            label_vectors = set([i for i in label_vectors if i in label_dict_keys])
-            for l, k in zip((label_dict[i] for i in label_vectors), label_vectors):
-                yield ({'input_abstract':lstm_input_patent, 'input_claims':lstm_input_claims, 'input_label':l}, {'output_binary':[1]})
+        label, description, claims=request.json["label"], request.json["abstract"], request.json["claims"]
+        label_vectors = [label]
+        label_vectors = set([i for i in label_vectors if i in label_dict_keys])
+        for l, k in zip((label_dict[i] for i in label_vectors), label_vectors):
+            yield ({'input_abstract':lstm_input_patent, 'input_claims':lstm_input_claims, 'input_label':l}, {'output_binary':[1]})
         return
     description_shape = tf.TensorShape([num_words_abstract, embedding_dim])
     claims_shape = tf.TensorShape([num_words_claims, embedding_dim])
