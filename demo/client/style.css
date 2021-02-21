@@ -9,9 +9,13 @@
       font-family: 'Roboto', sans-serif;
     }
 #results {
-	background-color: lightgrey;
 }
 #send{
 	margin: auto;
 	max-width: 120px;
+}
+.output-boxes {
+	margin-top: 5px;
+	background-color: lightgrey;
+
 }

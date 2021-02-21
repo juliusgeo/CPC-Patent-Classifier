@@ -2030,9 +2030,16 @@
 "B60T":
 "VEHICLE BRAKE CONTROL SYSTEMS OR PARTS THEREOF"
 }
-    function sendData(){
-      var xhr = new XMLHttpRequest();
-        var url = "http://lvh.me:5000/getprediction";
+    function removeAllChildNodes(parent) {
+      while (parent.firstChild) {
+          parent.removeChild(parent.firstChild);
+      }
+    }
+    function go_up()
+    {
+        document.getElementById("info").textContent = "Training the model..."
+        var xhr = new XMLHttpRequest();
+        var url = "http://lvh.me:5000/trainup";
         xhr.open("POST", url, true);
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
@@ -2040,14 +2047,93 @@
         xhr.onreadystatechange = function () {
             console.log(this.responseText)
             if (this.readyState == 4 && this.status == 200) {
+                  document.getElementById("info").textContent = "Model trained!"
+                  console.log(json);
+            }
+        };
+        var curId = this.id;
+        var abstract = document.getElementById("abstract").value
+        var claims = document.getElementById("claims").value
+        var data = JSON.stringify({"label":curId, "abstract":abstract, "claims":claims});
+        console.log(data);
+        xhr.send(data);
+        sendData();
+    }
+    function go_down()
+    {
+        document.getElementById("info").textContent = "Training the model..."
+        var xhr = new XMLHttpRequest();
+        var url = "http://lvh.me:5000/traindown";
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+        xhr.setRequestHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, HEAD, OPTIONS");
+        xhr.onreadystatechange = function () {
+            console.log(this.responseText)
+            if (this.readyState == 4 && this.status == 200) {
+                  document.getElementById("info").textContent = "Model trained!"
+                  console.log(json);
+            }
+        };
+        var curId = this.id;
+        var abstract = document.getElementById("abstract").value
+        var claims = document.getElementById("claims").value
+        var data = JSON.stringify({"label":curId, "abstract":abstract, "claims":claims});
+        console.log(data);
+        xhr.send(data);
+        sendData();
+
+    }
+
+    function drawResults(json){
+      results = document.getElementById("results")
+      removeAllChildNodes(results);
+      for(var elem of json.slice(0, 13)){
+        var newResult = document.createElement('div');
+        newResult.classList.add("row");
+        
+
+        var leftButton = document.createElement("button");
+        leftButton.textContent = "DOWN";
+        leftButton.classList.add("btn");
+        leftButton.classList.add("btn-primary");
+        leftButton.classList.add("col-3");
+        leftButton.style.maxHeight = "30px";
+        leftButton.onclick = go_down;
+        leftButton.id = elem;
+
+        var rightButton = document.createElement("button");
+        rightButton.textContent = "UP";
+        rightButton.classList.add("btn");
+        rightButton.classList.add("btn-success");
+        rightButton.classList.add("col-3");
+        rightButton.style.maxHeight = "30px";
+        rightButton.onclick = go_up;
+        rightButton.id = elem;
+        
+        var middleContent = document.createElement("div");
+        middleContent.innerHTML = "<b>"+elem+"</b>: "+tag_dict[elem]
+        middleContent.classList.add("col-6");
+        newResult.appendChild(leftButton);
+        newResult.appendChild(middleContent);
+        newResult.appendChild(rightButton);
+        newResult.classList.add("output-boxes");
+        results.appendChild(newResult);
+      }
+    }
+    function sendData(){
+      var xhr = new XMLHttpRequest();
+        var url = "http://lvh.me:5000/getprediction";
+        xhr.open("POST", url, true);
+
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+        xhr.setRequestHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, HEAD, OPTIONS");
+        xhr.onreadystatechange = function () {
+            console.log(this.responseText)
+            if (this.readyState == 4 && this.status == 200) {
                   var json = JSON.parse(xhr.responseText);
-                  results = document.getElementById("results")
-                  results.innerHTML = ""
-                  for(var elem of json.slice(0, 13)){
-                    var newResult = document.createElement('div');
-                    newResult.innerHTML = elem+": "+tag_dict[elem];
-                    results.appendChild(newResult)
-                  }
+                  drawResults(json);
                 console.log(json);
             }
         };
@@ -2072,6 +2158,9 @@
           <div>...And your claims here:</div>
           <textarea placeholder=\"Put your claims here" class="textareas" id="claims" rows="10" cols="29"></textarea>
     </div>
+  </div>
+  <div class="row">
+    <div id="info"></div>
   </div>
   <div class="row">
 <button class="btn btn-primary" id="send" onclick="sendData()">Get results</button>

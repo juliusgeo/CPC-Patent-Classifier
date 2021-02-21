@@ -124,7 +124,7 @@ label_shape = tf.TensorShape([num_words_label_description, embedding_dim])
 
 @app.route('/getprediction', methods=["POST"])
 @cross_origin()
-def hello_world():
+def get_prediction():
     print(request.json)
     abstract = request.json["abstract"]
     claims = request.json["claims"]
@@ -144,3 +144,43 @@ def hello_world():
     e = left_vectors[indices]
     print(e)
     return jsonify(e.tolist())
+
+@app.route('/trainup', methods=["POST"])
+@cross_origin()
+def train_up():
+    def lstm_data_generator():
+        for row in current_dataframe[indices]:
+            label, description, claims=request.json["label"], request.json["abstract"], request.json["claims"]
+            label_vectors = [label]
+            label_vectors = set([i for i in label_vectors if i in label_dict_keys])
+            for l, k in zip((label_dict[i] for i in label_vectors), label_vectors):
+                yield ({'input_abstract':lstm_input_patent, 'input_claims':lstm_input_claims, 'input_label':l}, {'output_binary':[1]})
+        return
+    description_shape = tf.TensorShape([num_words_abstract, embedding_dim])
+    claims_shape = tf.TensorShape([num_words_claims, embedding_dim])
+    label_shape = tf.TensorShape([num_words_label_description, embedding_dim])
+    lstm_dataset = tf.data.Dataset.from_generator(lstm_data_generator, ({'input_abstract':tf.float64, 'input_claims':tf.float64, 'input_label':tf.float64}, {'output_binary':tf.float64}), ({'input_abstract':description_shape,'input_claims':claims_shape, 'input_label':label_shape}, {'output_binary':tf.TensorShape([1])}))
+    lstm_dataset = lstm_dataset.batch(16, drop_remainder=True).prefetch(100).repeat()
+    history = model.fit(lstm_dataset, epochs=1, steps_per_epoch=1)
+    return {"model succeeded"}
+
+@app.route('/traindown', methods=["POST"])
+@cross_origin()
+def train_down():
+    def lstm_data_generator():
+        for row in current_dataframe[indices]:
+            label, description, claims=request.json["label"], request.json["abstract"], request.json["claims"]
+            label_vectors = [label]
+            label_vectors = set([i for i in label_vectors if i in label_dict_keys])
+            for l, k in zip((label_dict[i] for i in label_vectors), label_vectors):
+                yield ({'input_abstract':lstm_input_patent, 'input_claims':lstm_input_claims, 'input_label':l}, {'output_binary':[1]})
+        return
+    description_shape = tf.TensorShape([num_words_abstract, embedding_dim])
+    claims_shape = tf.TensorShape([num_words_claims, embedding_dim])
+    label_shape = tf.TensorShape([num_words_label_description, embedding_dim])
+    lstm_dataset = tf.data.Dataset.from_generator(lstm_data_generator, ({'input_abstract':tf.float64, 'input_claims':tf.float64, 'input_label':tf.float64}, {'output_binary':tf.float64}), ({'input_abstract':description_shape,'input_claims':claims_shape, 'input_label':label_shape}, {'output_binary':tf.TensorShape([1])}))
+    lstm_dataset = lstm_dataset.batch(16, drop_remainder=True).prefetch(100).repeat()
+    history = model.fit(lstm_dataset, epochs=1, steps_per_epoch=1)
+    return {"model succeeded"}
+
+
