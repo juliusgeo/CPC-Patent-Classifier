@@ -56,8 +56,8 @@ description_shape = tf.TensorShape([num_words_abstract, embedding_dim])
 claims_shape = tf.TensorShape([num_words_claims, embedding_dim])
 label_shape = tf.TensorShape([num_words_label_description, embedding_dim])
 
-
-
+layer_size = 256
+layer_size2 = 1024
 
 input_abstract = tf.keras.Input(shape=(num_words_abstract, embedding_dim), name='input_abstract')
 input_claims = tf.keras.Input(shape=(num_words_claims, embedding_dim), name='input_claims')
@@ -67,50 +67,35 @@ abstract_mask = tf.keras.layers.Masking(mask_value=0., input_shape=(num_words_ab
 claims_mask = tf.keras.layers.Masking(mask_value=0., input_shape=(num_words_claims, embedding_dim))(input_claims)
 label_mask = tf.keras.layers.Masking(mask_value=0., input_shape=(num_words_label_description, embedding_dim))(input_label)
 
-layer_size = embedding_dim*4
-abstract = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(embedding_dim, return_sequences=True))(abstract_mask)
-claims = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(embedding_dim, return_sequences=True))(claims_mask)
-label = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(embedding_dim, return_sequences=True))(label_mask)
+abstractLSTM = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(128, return_sequences=True))(abstract_mask)
+claimsLSTM = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(128, return_sequences=True))(claims_mask)
+labelLSTM = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(128,return_sequences=True))(label_mask)
 
-#
-
-
-abstract = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(layer_size))(abstract)
-abstract = tf.keras.layers.GlobalAveragePooling1D()(abstract)
-
-claims = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(layer_size))(claims)
-claims = tf.keras.layers.GlobalAveragePooling1D()(claims)
-
-label = tf.keras.layers.TimeDistributed(tf.keras.layers.Dense(layer_size))(label)
-label = tf.keras.layers.GlobalAveragePooling1D()(label)
-#patent = tf.keras.layers.Dense(layer_size//2)(patent)
-#label =  tf.keras.layers.Dense(layer_size//2)(label)
-
-#subtract = tf.keras.layers.Subtract()([patent, label])
-#multiply = tf.keras.layers.Multiply()([patent, label])
-
-concat = tf.keras.layers.Concatenate(axis=1)([abstract, claims, label])
-dense = tf.keras.layers.Dense(int(layer_size)*2)(concat)
-dense = tf.keras.layers.Dense(int(layer_size)*2)(dense)
-dense = tf.keras.layers.Dense(int(layer_size)*2, activation='relu')(dense)
-dense = tf.keras.layers.Dense(int(layer_size)*2, activation='relu')(dense)
-dense = tf.keras.layers.Dense(int(layer_size)*2, activation='relu')(dense)
-
-output_binary = tf.keras.layers.Dense(1, name='output_binary')(dense)
+abstractLSTM = tf.keras.layers.Dense(layer_size)(abstractLSTM)
+claimsLSTM = tf.keras.layers.Dense(layer_size)(claimsLSTM)
+labelLSTM = tf.keras.layers.Dense(layer_size)(labelLSTM)
 
 
-#lstm_enforce_1 = tf.keras.layers.Dense(200, activation='relu')(patent_lstm)
-#lstm_enforce_2 = tf.keras.layers.Dense(1000, name='output_2')(lstm_enforce_1)
-#model = tf.keras.Model(inputs={'input_1':input_lstm, 'input_2':input_label}, outputs={'output_1':output_binary, 'output_2':lstm_enforce_2})
+abstract = tf.keras.layers.GlobalAveragePooling1D()(abstractLSTM)
+claims = tf.keras.layers.GlobalAveragePooling1D()(claimsLSTM)
+label = tf.keras.layers.GlobalAveragePooling1D()(labelLSTM)
+
+concat = tf.keras.layers.Concatenate(axis=1)([abstract,claims,label])
+
+dense = tf.keras.layers.Dense(int(layer_size2))(concat)
+dense = tf.keras.layers.Dense(int(layer_size2), activation='relu')(dense)
+dense = tf.keras.layers.Dense(int(layer_size2), activation='relu')(dense)
+dense = tf.keras.layers.Dense(int(layer_size2), activation='relu')(dense)
+
+output_binary = tf.keras.layers.Dense(1, activation="sigmoid", name='output_binary')(dense)
 model = tf.keras.Model(inputs={'input_abstract':input_abstract, 'input_claims':input_claims,  'input_label':input_label}, outputs=[output_binary])
 print(model)
 
 #saver = tf.train.Saver(max_to_keep=4, keep_checkpoint_every_n_hours=2)
 #del model
 
-model.load_weights(directory_prefix+"checkpoints/LSTMWithoutAttention-ThreeHeadsLabelDepth4.h5")
-
-
+CHECKPOINT_PATH = directory_prefix+"checkpoints/lstm3head_label4.h5"
+model.load_weights(CHECKPOINT_PATH)
 model.summary()
 opt = tf.optimizers.Adam(1e-5)
 model.compile(loss=['binary_crossentropy'],optimizer=opt,metrics=['accuracy'], experimental_run_tf_function=False)
@@ -126,6 +111,8 @@ label_shape = tf.TensorShape([num_words_label_description, embedding_dim])
 @cross_origin()
 def get_prediction():
     print(request.json)
+
+    model.load_weights(CHECKPOINT_PATH)
     abstract = request.json["abstract"]
     claims = request.json["claims"]
     lstm_input_patent = get_sentence_vector(abstract.lower(), num_words_abstract)
@@ -177,7 +164,7 @@ def train_down():
         lstm_input_patent = get_sentence_vector(abstract.lower(), num_words_abstract)
         lstm_input_claims = get_sentence_vector(claims.lower(), num_words_claims)
         for l, k in zip((label_dict[i] for i in label_vectors), label_vectors):
-            yield ({'input_abstract':lstm_input_patent, 'input_claims':lstm_input_claims, 'input_label':}, {'output_binary':[0]})
+            yield ({'input_abstract':lstm_input_patent, 'input_claims':lstm_input_claims, 'input_label':l}, {'output_binary':[0]})
         return
     description_shape = tf.TensorShape([num_words_abstract, embedding_dim])
     claims_shape = tf.TensorShape([num_words_claims, embedding_dim])
@@ -187,7 +174,7 @@ def train_down():
     cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=directory_prefix+"checkpoints/LSTMWithoutAttention-ThreeHeadsLabelDepth4.h5",
                                                              save_weights_only=False,
                                                                                                               verbose=1)
-    model.fit(lstm_dataset, epochs=1, steps_per_epoch=10, callbacks=[cp_callback])
+    model.fit(lstm_dataset, epochs=5, steps_per_epoch=5, callbacks=[cp_callback])
     return jsonify({"message":"model succeeded"})
 
 
