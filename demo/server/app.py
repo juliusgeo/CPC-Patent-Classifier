@@ -126,8 +126,9 @@ def get_prediction():
     prediction = model.predict(dataset, steps=num_tests, verbose=1).reshape(label_len)
     indices = np.flip(np.argsort(prediction, axis=0))
     print(np.flip(np.sort(prediction, axis=0))[:3])
-    e = left_vectors[indices]
-    return jsonify(e.tolist())
+    e = [(i, np.float64(k)) for i, k in zip(left_vectors[indices], prediction[indices])]
+    print(e)
+    return jsonify(e)
 
 @app.route('/trainup', methods=["POST"])
 @cross_origin()
