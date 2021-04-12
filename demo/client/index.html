@@ -2094,6 +2094,7 @@
       results = document.getElementById("results")
       removeAllChildNodes(results);
       for(var elem of json.slice(0, 13)){
+      	console.log(elem);
         var newResult = document.createElement('div');
         newResult.classList.add("row");
         
@@ -2117,7 +2118,7 @@
         rightButton.id = elem;
         
         var middleContent = document.createElement("div");
-        middleContent.innerHTML = "<b>"+elem+"</b>: "+tag_dict[elem]
+        middleContent.innerHTML = "<b>"+elem[0]+"</b> ("+elem[1].toFixed(2)+"): "+tag_dict[elem[0]]
         middleContent.classList.add("col-6");
         newResult.appendChild(leftButton);
         newResult.appendChild(middleContent);
