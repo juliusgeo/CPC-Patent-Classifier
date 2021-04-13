@@ -2045,11 +2045,11 @@
         xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
         xhr.setRequestHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, HEAD, OPTIONS");
         xhr.onreadystatechange = function () {
-            console.log(this.responseText)
+            //console.log(this.responseText)
             if (this.readyState == 4 && this.status == 200) {
                   document.getElementById("info").textContent = "Model trained!"
                   var json = JSON.parse(xhr.responseText);
-                  console.log(json);
+                //  console.log(json);
                           sendData();
 
 
@@ -2059,7 +2059,7 @@
         var abstract = document.getElementById("abstract").value
         var claims = document.getElementById("claims").value
         var data = JSON.stringify({"label":curId, "abstract":abstract, "claims":claims});
-        console.log(data);
+        //console.log(data);
         xhr.send(data);
     }
     function go_down()
@@ -2072,11 +2072,11 @@
         xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
         xhr.setRequestHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, HEAD, OPTIONS");
         xhr.onreadystatechange = function () {
-            console.log(this.responseText)
+            //console.log(this.responseText)
             if (this.readyState == 4 && this.status == 200) {
                   document.getElementById("info").textContent = "Model trained!"
                   var json = JSON.parse(xhr.responseText);
-                  console.log(json);
+                  //console.log(json);
                           sendData();
 
             }
@@ -2085,7 +2085,7 @@
         var abstract = document.getElementById("abstract").value
         var claims = document.getElementById("claims").value
         var data = JSON.stringify({"label":curId, "abstract":abstract, "claims":claims});
-        console.log(data);
+        //console.log(data);
         xhr.send(data);
 
     }
@@ -2094,7 +2094,6 @@
       results = document.getElementById("results")
       removeAllChildNodes(results);
       for(var elem of json.slice(0, 13)){
-      	console.log(elem);
         var newResult = document.createElement('div');
         newResult.classList.add("row");
         
@@ -2106,7 +2105,7 @@
         leftButton.classList.add("col-3");
         leftButton.style.maxHeight = "30px";
         leftButton.onclick = go_down;
-        leftButton.id = elem;
+        leftButton.id = elem[0];
 
         var rightButton = document.createElement("button");
         rightButton.textContent = "UP";
@@ -2115,7 +2114,8 @@
         rightButton.classList.add("col-3");
         rightButton.style.maxHeight = "30px";
         rightButton.onclick = go_up;
-        rightButton.id = elem;
+        rightButton.id = elem[0];
+
         
         var middleContent = document.createElement("div");
         middleContent.innerHTML = "<b>"+elem[0]+"</b> ("+elem[1].toFixed(2)+"): "+tag_dict[elem[0]]
@@ -2136,18 +2136,18 @@
         xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
         xhr.setRequestHeader("Access-Control-Allow-Methods", "GET, PUT, POST, DELETE, HEAD, OPTIONS");
         xhr.onreadystatechange = function () {
-            console.log(this.responseText)
+            //console.log(this.responseText)
             if (this.readyState == 4 && this.status == 200) {
                   var json = JSON.parse(xhr.responseText);
                   drawResults(json);
-                console.log(json);
+                //console.log(json);
             }
         };
         var abstract = document.getElementById("abstract").value
         var claims = document.getElementById("claims").value
 
         var data = JSON.stringify({"abstract":abstract, "claims":claims});
-        console.log(data);
+        //console.log(data);
         xhr.send(data);
     }
 
